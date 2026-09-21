@@ -22,6 +22,7 @@ python 1.BasicLLM/1.geminillm.py
 | `1.BasicLLM/` | Calling a Gemini model with LangChain |
 | `2.Prompts/` | Prompt templates and a small chat app |
 | `2.StructuredResponse/` | Getting structured output from the model |
+| `3.OutputParsers/` | Parsing model output with LCEL chains |
 
 ### 1.BasicLLM
 - `1.geminillm.py` — load `.env`, create a `ChatGoogleGenerativeAI` model and invoke it.
@@ -39,12 +40,20 @@ Same task (reviewing a text) done four ways:
 - `3.pydanticResponse.py` — Pydantic `BaseModel` with `Field` descriptions and `Literal`.
 - `4.jsonSchema.py` — raw JSON Schema passed to the model.
 
+### 3.OutputParsers
+Chains built with the `|` pipe operator (LCEL), each ending in an output parser:
+- `1.strOutputParser.py` — `StrOutputParser` in a two-step chain (long report → 5-line summary).
+- `2.jsonOutputParser.py` — `JsonOutputParser`, injecting `get_format_instructions()` as a partial variable.
+- `3.pydanticOutputParser.py` — `PydanticOutputParser` with a `Person` model (`Field` constraints, e.g. `gt`/`lt` on age).
+
 ## Key concepts learned
 
 - **Prompt templates** — static vs dynamic, `PromptTemplate` vs `ChatPromptTemplate`.
 - **Message roles** — System (behavior/tone), Human (user input), AI (past responses).
 - **Structured output** — `model.with_structured_output(schema)` forces the LLM to return a fixed shape (TypedDict, Pydantic, or JSON Schema).
 - **Strict mode** — passing `strict=True` enforces the schema more tightly.
+- **Output parsers** — `StrOutputParser`, `JsonOutputParser`, and `PydanticOutputParser` turn raw messages into plain strings, dicts, or validated models.
+- **LCEL chains** — the `|` operator composes prompt → model → parser into a pipeline (and chains can be sequenced, e.g. report then summary).
 
 ## Notes
 

@@ -23,6 +23,7 @@ python 1.BasicLLM/1.geminillm.py
 | `2.Prompts/` | Prompt templates and a small chat app |
 | `2.StructuredResponse/` | Getting structured output from the model |
 | `3.OutputParsers/` | Parsing model output with LCEL chains |
+| `4.Chains/` | Composing prompts, models and parsers into chains |
 
 ### 1.BasicLLM
 - `1.geminillm.py` — load `.env`, create a `ChatGoogleGenerativeAI` model and invoke it.
@@ -46,6 +47,11 @@ Chains built with the `|` pipe operator (LCEL), each ending in an output parser:
 - `2.jsonOutputParser.py` — `JsonOutputParser`, injecting `get_format_instructions()` as a partial variable.
 - `3.pydanticOutputParser.py` — `PydanticOutputParser` with a `Person` model (`Field` constraints, e.g. `gt`/`lt` on age).
 
+### 4.Chains
+- `1.simpleChain.py` — basic `prompt | model | parser` chain generating facts about a topic.
+- `2.sequentialChain.py` — two prompts chained together (detailed report → 3-point summary).
+- `3.conditionalChain.py` — `RunnableBranch` routing feedback by sentiment: a classifier chain tags it positive/negative, then the matching reply prompt runs.
+
 ## Key concepts learned
 
 - **Prompt templates** — static vs dynamic, `PromptTemplate` vs `ChatPromptTemplate`.
@@ -54,6 +60,9 @@ Chains built with the `|` pipe operator (LCEL), each ending in an output parser:
 - **Strict mode** — passing `strict=True` enforces the schema more tightly.
 - **Output parsers** — `StrOutputParser`, `JsonOutputParser`, and `PydanticOutputParser` turn raw messages into plain strings, dicts, or validated models.
 - **LCEL chains** — the `|` operator composes prompt → model → parser into a pipeline (and chains can be sequenced, e.g. report then summary).
+- **Simple vs sequential chains** — a simple chain is one pass through prompt/model/parser; a sequential chain feeds one step's output into the next step's prompt.
+- **Conditional chains** — `RunnableBranch` picks a branch based on a condition function, with a fallback runnable for the no-match case.
+- **RunnablePassthrough.assign** — adds a new key (e.g. `classifier`) to the input dict while passing the rest through unchanged.
 
 ## Notes
 

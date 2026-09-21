@@ -51,6 +51,7 @@ Chains built with the `|` pipe operator (LCEL), each ending in an output parser:
 - `1.simpleChain.py` — basic `prompt | model | parser` chain generating facts about a topic.
 - `2.sequentialChain.py` — two prompts chained together (detailed report → 3-point summary).
 - `3.conditionalChain.py` — `RunnableBranch` routing feedback by sentiment: a classifier chain tags it positive/negative, then the matching reply prompt runs.
+- `4.parallelChain.py` — `RunnableParallel` runs a notes chain and a Q&A chain at the same time, then a merge prompt combines both outputs.
 
 ## Key concepts learned
 
@@ -63,6 +64,7 @@ Chains built with the `|` pipe operator (LCEL), each ending in an output parser:
 - **Simple vs sequential chains** — a simple chain is one pass through prompt/model/parser; a sequential chain feeds one step's output into the next step's prompt.
 - **Conditional chains** — `RunnableBranch` picks a branch based on a condition function, with a fallback runnable for the no-match case.
 - **RunnablePassthrough.assign** — adds a new key (e.g. `classifier`) to the input dict while passing the rest through unchanged.
+- **Parallel chains** — `RunnableParallel` fans the same input out to multiple chains at once and returns their results as a dict of named keys.
 
 ## Notes
 

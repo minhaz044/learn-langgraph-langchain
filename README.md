@@ -21,9 +21,10 @@ python 1.BasicLLM/1.geminillm.py
 | --- | --- |
 | `1.BasicLLM/` | Calling a Gemini model with LangChain |
 | `2.Prompts/` | Prompt templates and a small chat app |
-| `2.StructuredResponse/` | Getting structured output from the model |
-| `3.OutputParsers/` | Parsing model output with LCEL chains |
-| `4.Chains/` | Composing prompts, models and parsers into chains |
+| `3.StructuredResponse/` | Getting structured output from the model |
+| `4.OutputParsers/` | Parsing model output with LCEL chains |
+| `5.Chains/` | Composing prompts, models and parsers into chains |
+| `6.DocumentLoader/` | Loading text, PDF, directory, web and CSV data as `Document`s |
 
 ### 1.BasicLLM
 - `1.geminillm.py` — load `.env`, create a `ChatGoogleGenerativeAI` model and invoke it.
@@ -34,24 +35,32 @@ python 1.BasicLLM/1.geminillm.py
 - `3.dynamic_prompt.py` — `ChatPromptTemplate` using system + human messages.
 - `4.project.py` — a small interactive blog post generator that keeps chat history.
 
-### 2.StructuredResponse
+### 3.StructuredResponse
 Same task (reviewing a text) done four ways:
 - `1.typedDict.py` — `TypedDict` schema with `with_structured_output`.
 - `2.annnotatedTypedDict.py` — `TypedDict` + `Annotated` field descriptions.
 - `3.pydanticResponse.py` — Pydantic `BaseModel` with `Field` descriptions and `Literal`.
 - `4.jsonSchema.py` — raw JSON Schema passed to the model.
 
-### 3.OutputParsers
+### 4.OutputParsers
 Chains built with the `|` pipe operator (LCEL), each ending in an output parser:
 - `1.strOutputParser.py` — `StrOutputParser` in a two-step chain (long report → 5-line summary).
 - `2.jsonOutputParser.py` — `JsonOutputParser`, injecting `get_format_instructions()` as a partial variable.
 - `3.pydanticOutputParser.py` — `PydanticOutputParser` with a `Person` model (`Field` constraints, e.g. `gt`/`lt` on age).
 
-### 4.Chains
+### 5.Chains
 - `1.simpleChain.py` — basic `prompt | model | parser` chain generating facts about a topic.
 - `2.sequentialChain.py` — two prompts chained together (detailed report → 3-point summary).
 - `3.conditionalChain.py` — `RunnableBranch` routing feedback by sentiment: a classifier chain tags it positive/negative, then the matching reply prompt runs.
 - `4.parallelChain.py` — `RunnableParallel` runs a notes chain and a Q&A chain at the same time, then a merge prompt combines both outputs.
+
+### 6.DocumentLoader
+Loaders from `langchain_community.document_loaders`, reading the sample files in `resources/`:
+- `1.textLoader.py` — `TextLoader` reads `cricket.txt` into a list of `Document` objects.
+- `2.pdfLoader.py` — `PyPDFLoader` reads `audit-report.pdf` (one `Document` per page) and prints its metadata.
+- `3.directoryLoader.py` — `DirectoryLoader` + `PyPDFLoader` loads every `*.pdf` in `resources/`, using both eager `load()` and `lazy_load()`.
+- `4.webBaseLoader.py` — `WebBaseLoader` scrapes a BBC page, then answers a question from that text through an LCEL chain.
+- `5.csvLoader.py` — `CSVLoader` turns each row of `countries of the world.csv` into a `Document`.
 
 ## Key concepts learned
 
@@ -65,9 +74,12 @@ Chains built with the `|` pipe operator (LCEL), each ending in an output parser:
 - **Conditional chains** — `RunnableBranch` picks a branch based on a condition function, with a fallback runnable for the no-match case.
 - **RunnablePassthrough.assign** — adds a new key (e.g. `classifier`) to the input dict while passing the rest through unchanged.
 - **Parallel chains** — `RunnableParallel` fans the same input out to multiple chains at once and returns their results as a dict of named keys.
+- **Document loaders** — `langchain_community.document_loaders` turns any source (file, folder, URL, CSV) into `Document` objects with `page_content` + `metadata`.
+- **Eager vs lazy loading** — `load()` returns everything at once; `lazy_load()` yields documents one at a time, which is lighter for large sources.
 
 ## Notes
 
 - Model used: `gemini-3.6-flash`.
+- Sample inputs for the loaders live in `resources/` (a `.txt`, two `.pdf`s and a `.csv`).
 - Python `>=3.13`, managed with `uv`.
 - `.env` is git-ignored — never commit API keys.

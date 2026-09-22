@@ -19,7 +19,7 @@ prompt2 = PromptTemplate(
     input_variables=['text']
 )
 
-prompt3 = PromptTemplate(template="Merge the provided notes and question answer into single document.{ {notes}, {qa}}",
+prompt3 = PromptTemplate(template="Merge the provided notes and question answer into single document. {notes}, {qa}",
                          input_variables=["notes", "qa"])
 
 parser = StrOutputParser()

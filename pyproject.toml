@@ -6,10 +6,11 @@ dependencies = [
     "google-genai>=2.24.0",
     "langchain-google-genai>=4.4.0",
     "python-dotenv>=1.2.3",
-    "langchain==1.4.2",
-    "langchain-core==1.6.4",
+    "langchain",
+    "langchain-core",
     "langchain-community",
     "langchain-groq",
     "pypdf",
     "pydantic",
+    "beautifulsoup4",
 ]

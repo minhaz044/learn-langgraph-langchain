@@ -25,6 +25,7 @@ python 1.BasicLLM/1.geminillm.py
 | `4.OutputParsers/` | Parsing model output with LCEL chains |
 | `5.Chains/` | Composing prompts, models and parsers into chains |
 | `6.DocumentLoader/` | Loading text, PDF, directory, web and CSV data as `Document`s |
+| `7.textSplitter/` | Splitting text and code into chunks with `langchain_text_splitters` |
 
 ### 1.BasicLLM
 - `1.geminillm.py` — load `.env`, create a `ChatGoogleGenerativeAI` model and invoke it.
@@ -62,6 +63,12 @@ Loaders from `langchain_community.document_loaders`, reading the sample files in
 - `4.webBaseLoader.py` — `WebBaseLoader` scrapes a BBC page, then answers a question from that text through an LCEL chain.
 - `5.csvLoader.py` — `CSVLoader` turns each row of `countries of the world.csv` into a `Document`.
 
+### 7.textSplitter
+Splitters from `langchain_text_splitters`, breaking long text into smaller `chunk_size` pieces with `chunk_overlap` carried into the next chunk:
+- `1.characterTextSplitter.py` — `CharacterTextSplitter` splits the `audit-report.pdf` documents on a separator, printing each chunk's content and metadata.
+- `2.recursiveTextSplitter.py` — `RecursiveCharacterTextSplitter` splits a raw string by trying separators (paragraph → sentence → word) in order.
+- `3.pythonCodeSplitter.py` — `PythonCodeTextSplitter` splits Python source on syntax boundaries (class/function/statement) so code stays coherent.
+
 ## Key concepts learned
 
 - **Prompt templates** — static vs dynamic, `PromptTemplate` vs `ChatPromptTemplate`.
@@ -76,6 +83,8 @@ Loaders from `langchain_community.document_loaders`, reading the sample files in
 - **Parallel chains** — `RunnableParallel` fans the same input out to multiple chains at once and returns their results as a dict of named keys.
 - **Document loaders** — `langchain_community.document_loaders` turns any source (file, folder, URL, CSV) into `Document` objects with `page_content` + `metadata`.
 - **Eager vs lazy loading** — `load()` returns everything at once; `lazy_load()` yields documents one at a time, which is lighter for large sources.
+- **Text splitters** — `langchain_text_splitters` breaks long text into `chunk_size` chunks with `chunk_overlap` so context isn't lost at the boundaries.
+- **Splitter strategies** — `CharacterTextSplitter` splits on a single separator, `RecursiveCharacterTextSplitter` tries paragraphs → sentences → words in order, and `PythonCodeTextSplitter` splits on code syntax boundaries.
 
 ## Notes
 

@@ -25,7 +25,9 @@ python 1.BasicLLM/1.geminillm.py
 | `4.OutputParsers/` | Parsing model output with LCEL chains |
 | `5.Chains/` | Composing prompts, models and parsers into chains |
 | `6.DocumentLoader/` | Loading text, PDF, directory, web and CSV data as `Document`s |
-| `7.textSplitter/` | Splitting text and code into chunks with `langchain_text_splitters` |
+| `7.TextSplitter/` | Splitting text and code into chunks with `langchain_text_splitters` |
+| `8.Embedding/` | Turning text into vectors with Hugging Face embeddings |
+| `9.VectorStores/` | Storing embeddings in Chroma and FAISS for similarity search |
 
 ### 1.BasicLLM
 - `1.geminillm.py` — load `.env`, create a `ChatGoogleGenerativeAI` model and invoke it.
@@ -63,11 +65,19 @@ Loaders from `langchain_community.document_loaders`, reading the sample files in
 - `4.webBaseLoader.py` — `WebBaseLoader` scrapes a BBC page, then answers a question from that text through an LCEL chain.
 - `5.csvLoader.py` — `CSVLoader` turns each row of `countries of the world.csv` into a `Document`.
 
-### 7.textSplitter
+### 7.TextSplitter
 Splitters from `langchain_text_splitters`, breaking long text into smaller `chunk_size` pieces with `chunk_overlap` carried into the next chunk:
 - `1.characterTextSplitter.py` — `CharacterTextSplitter` splits the `audit-report.pdf` documents on a separator, printing each chunk's content and metadata.
 - `2.recursiveTextSplitter.py` — `RecursiveCharacterTextSplitter` splits a raw string by trying separators (paragraph → sentence → word) in order.
 - `3.pythonCodeSplitter.py` — `PythonCodeTextSplitter` splits Python source on syntax boundaries (class/function/statement) so code stays coherent.
+
+### 8.Embedding
+- `1.huggingFaceEmbedding.py` — builds `HuggingFaceEmbeddings` with the `all-MiniLM-L6-v2` model and embeds a query via `aembed_query`.
+
+### 9.VectorStores
+Each script embeds a list of strings, stores the vectors, then runs `similarity_search(query, k=2)`:
+- `1.chromaDb.py` — `Chroma.from_texts` writes the vectors into a named collection (`langchain_chroma_demo`).
+- `1.faissDb.py` — `FAISS.from_texts` builds an in-memory index over a handful of Bangladesh facts.
 
 ## Key concepts learned
 
@@ -85,10 +95,13 @@ Splitters from `langchain_text_splitters`, breaking long text into smaller `chun
 - **Eager vs lazy loading** — `load()` returns everything at once; `lazy_load()` yields documents one at a time, which is lighter for large sources.
 - **Text splitters** — `langchain_text_splitters` breaks long text into `chunk_size` chunks with `chunk_overlap` so context isn't lost at the boundaries.
 - **Splitter strategies** — `CharacterTextSplitter` splits on a single separator, `RecursiveCharacterTextSplitter` tries paragraphs → sentences → words in order, and `PythonCodeTextSplitter` splits on code syntax boundaries.
+- **Embeddings** — `HuggingFaceEmbeddings` turns text into vectors that capture semantic meaning; `aembed_query` is the async variant.
+- **Vector stores** — `Chroma` (persistent, named collections) and `FAISS` (in-memory local index) store those vectors so `similarity_search(query, k)` can retrieve the closest chunks.
 
 ## Notes
 
 - Model used: `gemini-3.6-flash`.
+- Embeddings use `sentence-transformers/all-MiniLM-L6-v2` (via `langchain_huggingface`).
 - Sample inputs for the loaders live in `resources/` (a `.txt`, two `.pdf`s and a `.csv`).
 - Python `>=3.13`, managed with `uv`.
 - `.env` is git-ignored — never commit API keys.

@@ -28,6 +28,7 @@ python 1.BasicLLM/1.geminillm.py
 | `7.TextSplitter/` | Splitting text and code into chunks with `langchain_text_splitters` |
 | `8.Embedding/` | Turning text into vectors with Hugging Face embeddings |
 | `9.VectorStores/` | Storing embeddings in Chroma and FAISS for similarity search |
+| `10.Retrievers/` | Fetching relevant documents from a source (Wikipedia) |
 
 ### 1.BasicLLM
 - `1.geminillm.py` — load `.env`, create a `ChatGoogleGenerativeAI` model and invoke it.
@@ -77,7 +78,12 @@ Splitters from `langchain_text_splitters`, breaking long text into smaller `chun
 ### 9.VectorStores
 Each script embeds a list of strings, stores the vectors, then runs `similarity_search(query, k=2)`:
 - `1.chromaDb.py` — `Chroma.from_texts` writes the vectors into a named collection (`langchain_chroma_demo`).
-- `1.faissDb.py` — `FAISS.from_texts` builds an in-memory index over a handful of Bangladesh facts.
+- `2.faissDb.py` — `FAISS.from_texts` builds an in-memory index over a handful of Bangladesh facts.
+
+### 10.Retrievers
+- `1.WikipediaRetriever.py` — `WikipediaRetriever(top_k_results=2, lang="en")` fetches Wikipedia articles for a query and prints each result's `page_content`.
+- `2.vectorDbRetrievers.py` — builds a `Chroma` store from `Document`s and wraps it with `as_retriever(search_kwargs={"k": 2})`, then calls `retriever.invoke(query)`.
+- `3.maximalMarginalRelevanceRetrievers.py` — a `FAISS` store retriever using `search_type="mmr"`: runs the query twice with `lambda_mult` 0.25 (diverse results) vs 1.00 (pure similarity) to show the difference.
 
 ## Key concepts learned
 
@@ -97,11 +103,15 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - **Splitter strategies** — `CharacterTextSplitter` splits on a single separator, `RecursiveCharacterTextSplitter` tries paragraphs → sentences → words in order, and `PythonCodeTextSplitter` splits on code syntax boundaries.
 - **Embeddings** — `HuggingFaceEmbeddings` turns text into vectors that capture semantic meaning; `aembed_query` is the async variant.
 - **Vector stores** — `Chroma` (persistent, named collections) and `FAISS` (in-memory local index) store those vectors so `similarity_search(query, k)` can retrieve the closest chunks.
+- **Retrievers** — like vector stores but a simpler interface: call `invoke(query)` and get back relevant `Document`s (e.g. `WikipediaRetriever` pulls live articles, no embeddings needed).
+- **Vector store retrievers** — `vector_store.as_retriever(search_kwargs={"k": 2})` turns any store into a retriever so it can plug into chains.
+- **MMR (Maximal Marginal Relevance)** — `search_type="mmr"` balances relevance against diversity; `lambda_mult` near 0 favors diversity, near 1 favors pure similarity.
 
 ## Notes
 
 - Model used: `gemini-3.6-flash`.
 - Embeddings use `sentence-transformers/all-MiniLM-L6-v2` (via `langchain_huggingface`).
+- `resources/` also holds a second report PDF (`audit-report-xorg.pdf`) alongside `audit-report.pdf`.
 - Sample inputs for the loaders live in `resources/` (a `.txt`, two `.pdf`s and a `.csv`).
 - Python `>=3.13`, managed with `uv`.
 - `.env` is git-ignored — never commit API keys.

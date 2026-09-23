@@ -16,4 +16,5 @@ dependencies = [
     "langchain_huggingface",
     "sentence_transformers",
     "langchain_chroma",
+    "faiss-cpu",
 ]

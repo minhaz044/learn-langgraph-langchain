@@ -13,4 +13,7 @@ dependencies = [
     "pypdf",
     "pydantic",
     "beautifulsoup4",
+    "langchain_huggingface",
+    "sentence_transformers",
+    "langchain_chroma",
 ]

@@ -17,4 +17,5 @@ dependencies = [
     "sentence_transformers",
     "langchain_chroma",
     "faiss-cpu",
+    "wikipedia",
 ]

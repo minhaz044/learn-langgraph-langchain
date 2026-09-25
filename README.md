@@ -29,6 +29,7 @@ python 1.BasicLLM/1.geminillm.py
 | `8.Embedding/` | Turning text into vectors with Hugging Face embeddings |
 | `9.VectorStores/` | Storing embeddings in Chroma and FAISS for similarity search |
 | `10.Retrievers/` | Fetching relevant documents from a source (Wikipedia) |
+| `11.RAG/` | Putting it all together: retrieval-augmented generation |
 
 ### 1.BasicLLM
 - `1.geminillm.py` — load `.env`, create a `ChatGoogleGenerativeAI` model and invoke it.
@@ -85,6 +86,9 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - `2.vectorDbRetrievers.py` — builds a `Chroma` store from `Document`s and wraps it with `as_retriever(search_kwargs={"k": 2})`, then calls `retriever.invoke(query)`.
 - `3.maximalMarginalRelevanceRetrievers.py` — a `FAISS` store retriever using `search_type="mmr"`: runs the query twice with `lambda_mult` 0.25 (diverse results) vs 1.00 (pure similarity) to show the difference.
 
+### 11.RAG
+- `1.basic_rag.py` — end-to-end RAG: loads `audit-report.pdf`, splits it (`chunk_size=2000`, `chunk_overlap=300`), embeds into a `Chroma` collection, retrieves with MMR, and feeds the retrieved context + question into a Gemini prompt through an LCEL chain (`{context, question} | prompt | llm | parser`). Runs as an interactive loop until you type `exit`.
+
 ## Key concepts learned
 
 - **Prompt templates** — static vs dynamic, `PromptTemplate` vs `ChatPromptTemplate`.
@@ -106,6 +110,7 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - **Retrievers** — like vector stores but a simpler interface: call `invoke(query)` and get back relevant `Document`s (e.g. `WikipediaRetriever` pulls live articles, no embeddings needed).
 - **Vector store retrievers** — `vector_store.as_retriever(search_kwargs={"k": 2})` turns any store into a retriever so it can plug into chains.
 - **MMR (Maximal Marginal Relevance)** — `search_type="mmr"` balances relevance against diversity; `lambda_mult` near 0 favors diversity, near 1 favors pure similarity.
+- **RAG (Retrieval-Augmented Generation)** — load → split → embed → store → retrieve → prompt, wiring the retriever's context into the prompt so the LLM answers from your documents instead of its own memory.
 
 ## Notes
 

@@ -87,7 +87,7 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - `3.maximalMarginalRelevanceRetrievers.py` — a `FAISS` store retriever using `search_type="mmr"`: runs the query twice with `lambda_mult` 0.25 (diverse results) vs 1.00 (pure similarity) to show the difference.
 
 ### 11.RAG
-- `1.basic_rag.py` — end-to-end RAG: loads `audit-report.pdf`, splits it (`chunk_size=2000`, `chunk_overlap=300`), embeds into a `Chroma` collection, retrieves with MMR, and feeds the retrieved context + question into a Gemini prompt through an LCEL chain (`{context, question} | prompt | llm | parser`). Runs as an interactive loop until you type `exit`.
+- `1.basicRag.py` — end-to-end RAG: loads `audit-report.pdf`, splits it (`chunk_size=2000`, `chunk_overlap=300`), embeds into a `Chroma` collection, retrieves with MMR, and feeds the retrieved context + question into a Gemini prompt through an LCEL chain (`{context, question} | prompt | llm | parser`). Runs as an interactive loop until you type `exit`.
 
 ## Key concepts learned
 

@@ -88,6 +88,8 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 
 ### 11.RAG
 - `1.basicRag.py` — end-to-end RAG: loads `audit-report.pdf`, splits it (`chunk_size=2000`, `chunk_overlap=300`), embeds into a `Chroma` collection, retrieves with MMR, and feeds the retrieved context + question into a Gemini prompt through an LCEL chain (`{context, question} | prompt | llm | parser`). Runs as an interactive loop until you type `exit`.
+- `2.explainableRAG.py` — the same pipeline but with citation: each retrieved chunk is tagged with its page and source, the prompt is told to point at the page/chunk it used and to say "I don't know" when the answer isn't in the context, and the retrieved chunks are printed after the answer for verification.
+- `3.memoryRAG.py` — conversational RAG: keeps a `chat_history` of `HumanMessage`/`AIMessage` and feeds it back through a `MessagesPlaceholder` alongside the retrieved context, so follow-up questions can resolve references like "it" or "they". Interactive loop until you type `exit`.
 
 ## Key concepts learned
 
@@ -111,6 +113,8 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - **Vector store retrievers** — `vector_store.as_retriever(search_kwargs={"k": 2})` turns any store into a retriever so it can plug into chains.
 - **MMR (Maximal Marginal Relevance)** — `search_type="mmr"` balances relevance against diversity; `lambda_mult` near 0 favors diversity, near 1 favors pure similarity.
 - **RAG (Retrieval-Augmented Generation)** — load → split → embed → store → retrieve → prompt, wiring the retriever's context into the prompt so the LLM answers from your documents instead of its own memory.
+- **Explainable RAG** — carrying each chunk's `metadata` (page, source) into the prompt lets the model cite where an answer came from, and printing the retrieved chunks afterwards makes the retrieval step auditable.
+- **Conversational / memory RAG** — `MessagesPlaceholder(variable_name="chat_history")` injects prior turns into the prompt, so the model can resolve pronouns and follow-ups while still grounding answers in retrieved context.
 
 ## Notes
 

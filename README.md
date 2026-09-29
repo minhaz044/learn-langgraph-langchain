@@ -90,6 +90,7 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - `1.basicRag.py` — end-to-end RAG: loads `audit-report.pdf`, splits it (`chunk_size=2000`, `chunk_overlap=300`), embeds into a `Chroma` collection, retrieves with MMR, and feeds the retrieved context + question into a Gemini prompt through an LCEL chain (`{context, question} | prompt | llm | parser`). Runs as an interactive loop until you type `exit`.
 - `2.explainableRAG.py` — the same pipeline but with citation: each retrieved chunk is tagged with its page and source, the prompt is told to point at the page/chunk it used and to say "I don't know" when the answer isn't in the context, and the retrieved chunks are printed after the answer for verification.
 - `3.memoryRAG.py` — conversational RAG: keeps a `chat_history` of `HumanMessage`/`AIMessage` and feeds it back through a `MessagesPlaceholder` alongside the retrieved context, so follow-up questions can resolve references like "it" or "they". Interactive loop until you type `exit`.
+- `4.databaseMemoryRAG.py` — the memory RAG turned into a Streamlit chat app: chat history is persisted per `session_id` in a SQLite table (`chat_memory1.db`) instead of RAM, so past conversations survive restarts. The sidebar lists previous sessions (reload by clicking one) and starts a "New chat"; the vector store is built once and cached with `@st.cache_resource`. Run with `streamlit run 11.RAG/4.databaseMemoryRAG.py`.
 
 ## Key concepts learned
 
@@ -115,6 +116,8 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - **RAG (Retrieval-Augmented Generation)** — load → split → embed → store → retrieve → prompt, wiring the retriever's context into the prompt so the LLM answers from your documents instead of its own memory.
 - **Explainable RAG** — carrying each chunk's `metadata` (page, source) into the prompt lets the model cite where an answer came from, and printing the retrieved chunks afterwards makes the retrieval step auditable.
 - **Conversational / memory RAG** — `MessagesPlaceholder(variable_name="chat_history")` injects prior turns into the prompt, so the model can resolve pronouns and follow-ups while still grounding answers in retrieved context.
+- **Persistent memory (SQLite)** — storing `(session_id, role, content)` rows in SQLite and reloading them into `HumanMessage`/`AIMessage` objects keeps conversations across restarts, and `DISTINCT session_id` powers a session picker.
+- **Streamlit chat UI** — `st.chat_message`/`st.chat_input` render the conversation, `st.session_state` holds the active session, and `@st.cache_resource` builds the vector store once so it isn't rebuilt on every rerun.
 
 ## Notes
 
@@ -122,5 +125,6 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - Embeddings use `sentence-transformers/all-MiniLM-L6-v2` (via `langchain_huggingface`).
 - `resources/` also holds a second report PDF (`audit-report-xorg.pdf`) alongside `audit-report.pdf`.
 - Sample inputs for the loaders live in `resources/` (a `.txt`, two `.pdf`s and a `.csv`).
+- The Streamlit RAG app needs `streamlit` (in `pyproject.toml`) and creates a local `chat_memory1.db` SQLite file for chat history.
 - Python `>=3.13`, managed with `uv`.
 - `.env` is git-ignored — never commit API keys.

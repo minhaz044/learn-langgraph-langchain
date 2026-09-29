@@ -91,6 +91,7 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - `2.explainableRAG.py` — the same pipeline but with citation: each retrieved chunk is tagged with its page and source, the prompt is told to point at the page/chunk it used and to say "I don't know" when the answer isn't in the context, and the retrieved chunks are printed after the answer for verification.
 - `3.memoryRAG.py` — conversational RAG: keeps a `chat_history` of `HumanMessage`/`AIMessage` and feeds it back through a `MessagesPlaceholder` alongside the retrieved context, so follow-up questions can resolve references like "it" or "they". Interactive loop until you type `exit`.
 - `4.databaseMemoryRAG.py` — the memory RAG turned into a Streamlit chat app: chat history is persisted per `session_id` in a SQLite table (`chat_memory1.db`) instead of RAM, so past conversations survive restarts. The sidebar lists previous sessions (reload by clicking one) and starts a "New chat"; the vector store is built once and cached with `@st.cache_resource`. Run with `streamlit run 11.RAG/4.databaseMemoryRAG.py`.
+- `5.multiDocumentRAG.py` — multi-document RAG: loops over every `*.pdf` in `resources/multidocsample/`, loads them all, and tags each page with a `source_document` field so chunks keep track of which file they came from. All chunks go into one `Chroma` store; the prompt is told to name the documents involved when an answer draws on more than one, and each answer prints the sources it used. Interactive loop until you type `exit`.
 
 ## Key concepts learned
 
@@ -118,6 +119,7 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - **Conversational / memory RAG** — `MessagesPlaceholder(variable_name="chat_history")` injects prior turns into the prompt, so the model can resolve pronouns and follow-ups while still grounding answers in retrieved context.
 - **Persistent memory (SQLite)** — storing `(session_id, role, content)` rows in SQLite and reloading them into `HumanMessage`/`AIMessage` objects keeps conversations across restarts, and `DISTINCT session_id` powers a session picker.
 - **Streamlit chat UI** — `st.chat_message`/`st.chat_input` render the conversation, `st.session_state` holds the active session, and `@st.cache_resource` builds the vector store once so it isn't rebuilt on every rerun.
+- **Multi-document RAG** — loading many files into one store works as long as each chunk keeps its origin: attaching a `source_document` value to page `metadata` lets retrieval span documents and lets the answer cite which files it used.
 
 ## Notes
 
@@ -125,6 +127,7 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - Embeddings use `sentence-transformers/all-MiniLM-L6-v2` (via `langchain_huggingface`).
 - `resources/` also holds a second report PDF (`audit-report-xorg.pdf`) alongside `audit-report.pdf`.
 - Sample inputs for the loaders live in `resources/` (a `.txt`, two `.pdf`s and a `.csv`).
-- The Streamlit RAG app needs `streamlit` (in `pyproject.toml`) and creates a local `chat_memory1.db` SQLite file for chat history.
+- `resources/multidocsample/` holds the multi-document RAG inputs (`audit-report.pdf`, `Customer Performance Report.pdf`, `countries of the world.csv`).
+- The Streamlit RAG app needs `streamlit` (in `pyproject.toml`) and stores chat history in `chat_memory1.db` (committed at `11.RAG/chat_memory1.db`).
 - Python `>=3.13`, managed with `uv`.
 - `.env` is git-ignored — never commit API keys.

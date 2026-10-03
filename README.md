@@ -30,6 +30,7 @@ python 1.BasicLLM/1.geminillm.py
 | `9.VectorStores/` | Storing embeddings in Chroma and FAISS for similarity search |
 | `10.Retrievers/` | Fetching relevant documents from a source (Wikipedia) |
 | `11.RAG/` | Putting it all together: retrieval-augmented generation |
+| `12.Agents/` | Building a tool-calling agent with `create_agent` |
 
 ### 1.BasicLLM
 - `1.geminillm.py` — load `.env`, create a `ChatGoogleGenerativeAI` model and invoke it.
@@ -93,6 +94,9 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - `4.databaseMemoryRAG.py` — the memory RAG turned into a Streamlit chat app: chat history is persisted per `session_id` in a SQLite table (`chat_memory1.db`) instead of RAM, so past conversations survive restarts. The sidebar lists previous sessions (reload by clicking one) and starts a "New chat"; the vector store is built once and cached with `@st.cache_resource`. Run with `streamlit run 11.RAG/4.databaseMemoryRAG.py`.
 - `5.multiDocumentRAG.py` — multi-document RAG: loops over every `*.pdf` in `resources/multidocsample/`, loads them all, and tags each page with a `source_document` field so chunks keep track of which file they came from. All chunks go into one `Chroma` store; the prompt is told to name the documents involved when an answer draws on more than one, and each answer prints the sources it used. Interactive loop until you type `exit`.
 
+### 12.Agents
+- `1.toolCallingAgents.py` — a basic tool-calling agent built with `create_agent`: defines two `@tool`-decorated functions (`add`, `multiply`), hands them to the agent with a system prompt, and runs an interactive loop where the agent decides whether to call a tool or answer directly (`exit` to quit).
+
 ## Key concepts learned
 
 - **Prompt templates** — static vs dynamic, `PromptTemplate` vs `ChatPromptTemplate`.
@@ -120,6 +124,8 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - **Persistent memory (SQLite)** — storing `(session_id, role, content)` rows in SQLite and reloading them into `HumanMessage`/`AIMessage` objects keeps conversations across restarts, and `DISTINCT session_id` powers a session picker.
 - **Streamlit chat UI** — `st.chat_message`/`st.chat_input` render the conversation, `st.session_state` holds the active session, and `@st.cache_resource` builds the vector store once so it isn't rebuilt on every rerun.
 - **Multi-document RAG** — loading many files into one store works as long as each chunk keeps its origin: attaching a `source_document` value to page `metadata` lets retrieval span documents and lets the answer cite which files it used.
+- **Tools** — `@tool`-decorated functions expose plain Python to the model; the docstring is the description the LLM reads to decide when and how to call the tool.
+- **Agents** — `create_agent(model, tools, system_prompt)` builds a loop where the model chooses tools, sees their results, and repeats until it can answer directly; `invoke({"messages": [...]})` returns the full message trace (tool calls included), not just the final text.
 
 ## Notes
 

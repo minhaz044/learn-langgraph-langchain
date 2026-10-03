@@ -31,6 +31,7 @@ python 1.BasicLLM/1.geminillm.py
 | `10.Retrievers/` | Fetching relevant documents from a source (Wikipedia) |
 | `11.RAG/` | Putting it all together: retrieval-augmented generation |
 | `12.Agents/` | Building a tool-calling agent with `create_agent` |
+| `13.LlmAsJudge/` | Using an LLM as a judge to evaluate another model's answers |
 
 ### 1.BasicLLM
 - `1.geminillm.py` — load `.env`, create a `ChatGoogleGenerativeAI` model and invoke it.
@@ -97,6 +98,11 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 ### 12.Agents
 - `1.toolCallingAgents.py` — a basic tool-calling agent built with `create_agent`: defines two `@tool`-decorated functions (`add`, `multiply`), hands them to the agent with a system prompt, and runs an interactive loop where the agent decides whether to call a tool or answer directly (`exit` to quit).
 
+### 13.LlmAsJudge
+- `prompt.py` — shared constants: `GEMINI_VERSION` (`gemini-3.6-flash`) plus two `PromptTemplate`s — `QUESTION_PROMPT` (asks the model to answer a question) and `JUDGE_PROMPT` (tells the judge to assess an answer on accuracy 0–10, hallucination true/false, and feedback, returning JSON only).
+- `judge.py` — defines an `Evaluation` Pydantic model (`accuracy`, `hallucination`, `feedback`) and `evaluate_answer(question, answer)`: binds the schema with `with_structured_output(Evaluation)` and invokes the judge prompt, returning a validated `Evaluation`.
+- `main.py` — runs the question → answer → judge loop: generates an answer with `generate_answer`, judges each one with `evaluate_answer`, and prints the question, answer and evaluation.
+
 ## Key concepts learned
 
 - **Prompt templates** — static vs dynamic, `PromptTemplate` vs `ChatPromptTemplate`.
@@ -126,6 +132,8 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - **Multi-document RAG** — loading many files into one store works as long as each chunk keeps its origin: attaching a `source_document` value to page `metadata` lets retrieval span documents and lets the answer cite which files it used.
 - **Tools** — `@tool`-decorated functions expose plain Python to the model; the docstring is the description the LLM reads to decide when and how to call the tool.
 - **Agents** — `create_agent(model, tools, system_prompt)` builds a loop where the model chooses tools, sees their results, and repeats until it can answer directly; `invoke({"messages": [...]})` returns the full message trace (tool calls included), not just the final text.
+- **LLM as a judge** — a second LLM call (with a grading prompt) evaluates the quality of a model's answer, scoring accuracy and flagging hallucinations instead of trusting the output blindly.
+- **Structured judge output** — `with_structured_output(Evaluation)` makes the judge return a validated Pydantic object (`accuracy`, `hallucination`, `feedback`), so scores are machine-readable rather than free text.
 
 ## Notes
 

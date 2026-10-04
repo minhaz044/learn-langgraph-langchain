@@ -32,6 +32,7 @@ python 1.BasicLLM/1.geminillm.py
 | `11.RAG/` | Putting it all together: retrieval-augmented generation |
 | `12.Agents/` | Building a tool-calling agent with `create_agent` |
 | `13.LlmAsJudge/` | Using an LLM as a judge to evaluate another model's answers |
+| `14.LangGraph/` | Building a first state graph with LangGraph |
 
 ### 1.BasicLLM
 - `1.geminillm.py` — load `.env`, create a `ChatGoogleGenerativeAI` model and invoke it.
@@ -103,6 +104,9 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - `judge.py` — defines an `Evaluation` Pydantic model (`accuracy`, `hallucination`, `feedback`) and `evaluate_answer(question, answer)`: binds the schema with `with_structured_output(Evaluation)` and invokes the judge prompt, returning a validated `Evaluation`.
 - `main.py` — runs the question → answer → judge loop through `ask_until_good_answer`: generates an answer with `generate_answer`, judges it with `evaluate_answer`, and if `accuracy` is below the threshold (8) or the judge flags a hallucination, regenerates the answer — up to `max_attempt` (2) tries — before moving on to the next question.
 
+### 14.LangGraph
+- `1.basicGraph.ipynb` — a first LangGraph state graph: defines a `MsgState` `TypedDict`, a `greetings_node` that rewrites `state["message"]`, wires it up with `StateGraph(MsgState)` + `add_node` + `add_edge(START/END)`, compiles it with `graph.compile()`, and runs `bot.invoke({"message": "Learning Hub"})`.
+
 ## Key concepts learned
 
 - **Prompt templates** — static vs dynamic, `PromptTemplate` vs `ChatPromptTemplate`.
@@ -135,6 +139,9 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - **LLM as a judge** — a second LLM call (with a grading prompt) evaluates the quality of a model's answer, scoring accuracy and flagging hallucinations instead of trusting the output blindly.
 - **Structured judge output** — `with_structured_output(Evaluation)` makes the judge return a validated Pydantic object (`accuracy`, `hallucination`, `feedback`), so scores are machine-readable rather than free text.
 - **Self-correcting loop (judge in the loop)** — feeding the judge's verdict back into a retry condition (`accuracy >= threshold` and no hallucination) turns the judge from a passive scorer into a quality gate that regenerates weak answers before accepting them.
+- **State graph** — `StateGraph(State)` builds a graph over a shared `TypedDict` state that every node reads from and writes to.
+- **Nodes and edges** — `add_node(name, fn)` registers a step and `add_edge(START, ...)` / `add_edge(..., END)` connect them so the state flows from node to node in order.
+- **Compile and invoke** — `graph.compile()` turns the graph into a runnable and `invoke({...})` executes it, threading the state through each node and returning the final state.
 
 ## Notes
 

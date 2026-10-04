@@ -5,7 +5,7 @@ QUESTION_PROMPT = PromptTemplate(
     input_variables=['question']
 )
 
-GEMINI_VERSION = "gemini-3.6-flash"
+GEMINI_VERSION = "gemini-3.5-flash-lite"
 
 JUDGE_PROMPT = PromptTemplate(
     template="""

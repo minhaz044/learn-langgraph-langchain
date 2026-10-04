@@ -4,7 +4,7 @@ load_dotenv()
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from prompt import QUESTION_PROMPT, GEMINI_VERSION
-from judge import evaluate_answer
+from judge import evaluate_answer, Evaluation
 
 llm = ChatGoogleGenerativeAI(model=GEMINI_VERSION)
 
@@ -15,6 +15,23 @@ def generate_answer(user_input: str):
     return response
 
 
+def ask_until_good_answer(ques: str, threshold: int = 8, max_attempt: int = 2):
+    attempt = 0
+
+    while attempt < max_attempt:
+        ans = generate_answer(ques)
+        print("Answer : \n\n ", ans.text)
+        _eval: Evaluation = evaluate_answer(ques, ans.text)
+        print("Evaluation : \n\n ", _eval)
+        if _eval.accuracy >= threshold and _eval.hallucination != True:
+            print("Answer is accurate , No correction needed")
+            break
+        else:
+            print("Answer is below threshold ,regenerating..........")
+            attempt += 1
+    print("===========================")
+
+
 questions = [
     "What is the capital of Bangladesh?",
     "what is the largest city of bangladesh? ",
@@ -23,9 +40,4 @@ questions = [
 ]
 
 for question in questions:
-    answer = generate_answer(question)
-    evaluation = evaluate_answer(question, answer.text)
-    print("\nQuestion:", question)
-    print("\nAnswer:", answer.text)
-    print("\nEvaluation:", evaluation)
-    print("\n===================================\n")
+    ask_until_good_answer(question)

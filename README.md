@@ -99,9 +99,9 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - `1.toolCallingAgents.py` — a basic tool-calling agent built with `create_agent`: defines two `@tool`-decorated functions (`add`, `multiply`), hands them to the agent with a system prompt, and runs an interactive loop where the agent decides whether to call a tool or answer directly (`exit` to quit).
 
 ### 13.LlmAsJudge
-- `prompt.py` — shared constants: `GEMINI_VERSION` (`gemini-3.6-flash`) plus two `PromptTemplate`s — `QUESTION_PROMPT` (asks the model to answer a question) and `JUDGE_PROMPT` (tells the judge to assess an answer on accuracy 0–10, hallucination true/false, and feedback, returning JSON only).
+- `prompt.py` — shared constants: `GEMINI_VERSION` (`gemini-3.5-flash-lite`) plus two `PromptTemplate`s — `QUESTION_PROMPT` (asks the model to answer a question) and `JUDGE_PROMPT` (tells the judge to assess an answer on accuracy 0–10, hallucination true/false, and feedback, returning JSON only).
 - `judge.py` — defines an `Evaluation` Pydantic model (`accuracy`, `hallucination`, `feedback`) and `evaluate_answer(question, answer)`: binds the schema with `with_structured_output(Evaluation)` and invokes the judge prompt, returning a validated `Evaluation`.
-- `main.py` — runs the question → answer → judge loop: generates an answer with `generate_answer`, judges each one with `evaluate_answer`, and prints the question, answer and evaluation.
+- `main.py` — runs the question → answer → judge loop through `ask_until_good_answer`: generates an answer with `generate_answer`, judges it with `evaluate_answer`, and if `accuracy` is below the threshold (8) or the judge flags a hallucination, regenerates the answer — up to `max_attempt` (2) tries — before moving on to the next question.
 
 ## Key concepts learned
 
@@ -134,10 +134,11 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - **Agents** — `create_agent(model, tools, system_prompt)` builds a loop where the model chooses tools, sees their results, and repeats until it can answer directly; `invoke({"messages": [...]})` returns the full message trace (tool calls included), not just the final text.
 - **LLM as a judge** — a second LLM call (with a grading prompt) evaluates the quality of a model's answer, scoring accuracy and flagging hallucinations instead of trusting the output blindly.
 - **Structured judge output** — `with_structured_output(Evaluation)` makes the judge return a validated Pydantic object (`accuracy`, `hallucination`, `feedback`), so scores are machine-readable rather than free text.
+- **Self-correcting loop (judge in the loop)** — feeding the judge's verdict back into a retry condition (`accuracy >= threshold` and no hallucination) turns the judge from a passive scorer into a quality gate that regenerates weak answers before accepting them.
 
 ## Notes
 
-- Model used: `gemini-3.6-flash`.
+- Model used: `gemini-3.6-flash` for most modules; the RAG modules use `gemini-3.5-flash` and `13.LlmAsJudge` uses `gemini-3.5-flash-lite`.
 - Embeddings use `sentence-transformers/all-MiniLM-L6-v2` (via `langchain_huggingface`).
 - `resources/` also holds a second report PDF (`audit-report-xorg.pdf`) alongside `audit-report.pdf`.
 - Sample inputs for the loaders live in `resources/` (a `.txt`, two `.pdf`s and a `.csv`).

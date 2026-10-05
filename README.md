@@ -32,7 +32,7 @@ python 1.BasicLLM/1.geminillm.py
 | `11.RAG/` | Putting it all together: retrieval-augmented generation |
 | `12.Agents/` | Building a tool-calling agent with `create_agent` |
 | `13.LlmAsJudge/` | Using an LLM as a judge to evaluate another model's answers |
-| `14.LangGraph/` | Building a first state graph with LangGraph |
+| `14.LangGraph/` | State graphs: multi-node flows and conditional routing |
 
 ### 1.BasicLLM
 - `1.geminillm.py` — load `.env`, create a `ChatGoogleGenerativeAI` model and invoke it.
@@ -106,6 +106,8 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 
 ### 14.LangGraph
 - `1.basicGraph.ipynb` — a first LangGraph state graph: defines a `MsgState` `TypedDict`, a `greetings_node` that rewrites `state["message"]`, wires it up with `StateGraph(MsgState)` + `add_node` + `add_edge(START/END)`, compiles it with `graph.compile()`, and runs `bot.invoke({"message": "Learning Hub"})`.
+- `2.complexGraph.ipynb` — a multi-node graph: an `AgentState` (`name`, `age`, `skills`, `result`) flows through three nodes, each appending to `result`, with `add_edge` chaining them `START → first → second → third → END`.
+- `3.conditionalEdges.ipynb` — routing with conditions: an `AgentState` (`number1`, `number2`, `operations`, `result`) goes to a pass-through `router` node, and `add_conditional_edges("router", decode_next_snode, {...})` maps the returned key (`add_op`/`subtract_op`) to the add or subtract node based on `operations`.
 
 ## Key concepts learned
 
@@ -142,6 +144,9 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - **State graph** — `StateGraph(State)` builds a graph over a shared `TypedDict` state that every node reads from and writes to.
 - **Nodes and edges** — `add_node(name, fn)` registers a step and `add_edge(START, ...)` / `add_edge(..., END)` connect them so the state flows from node to node in order.
 - **Compile and invoke** — `graph.compile()` turns the graph into a runnable and `invoke({...})` executes it, threading the state through each node and returning the final state.
+- **Multi-node graphs** — chaining more than two nodes with `add_edge` lets one state flow through a whole pipeline, with each node reading and enriching the same dict in order.
+- **Router node** — a lightweight pass-through node (`lambda state: state`) gives conditional edges a stable source to branch from before any real work happens.
+- **Conditional edges** — `add_conditional_edges(source, routing_fn, path_map)` decides the next node at runtime: `routing_fn` returns a key, and `path_map` translates that key into the target node name.
 
 ## Notes
 

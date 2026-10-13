@@ -32,7 +32,7 @@ python 1.BasicLLM/1.geminillm.py
 | `11.RAG/` | Putting it all together: retrieval-augmented generation |
 | `12.Agents/` | Building a tool-calling agent with `create_agent` |
 | `13.LlmAsJudge/` | Using an LLM as a judge to evaluate another model's answers |
-| `14.LangGraph/` | State graphs: multi-node flows and conditional routing |
+| `14.LangGraph/` | State graphs: multi-node flows, conditional routing, loops and tool-calling agents |
 
 ### 1.BasicLLM
 - `1.geminillm.py` — load `.env`, create a `ChatGoogleGenerativeAI` model and invoke it.
@@ -108,6 +108,12 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - `1.basicGraph.ipynb` — a first LangGraph state graph: defines a `MsgState` `TypedDict`, a `greetings_node` that rewrites `state["message"]`, wires it up with `StateGraph(MsgState)` + `add_node` + `add_edge(START/END)`, compiles it with `graph.compile()`, and runs `bot.invoke({"message": "Learning Hub"})`.
 - `2.complexGraph.ipynb` — a multi-node graph: an `AgentState` (`name`, `age`, `skills`, `result`) flows through three nodes, each appending to `result`, with `add_edge` chaining them `START → first → second → third → END`.
 - `3.conditionalEdges.ipynb` — routing with conditions: an `AgentState` (`number1`, `number2`, `operations`, `result`) goes to a pass-through `router` node, and `add_conditional_edges("router", decode_next_snode, {...})` maps the returned key (`add_op`/`subtract_op`) to the add or subtract node based on `operations`.
+- `4.complexConditionalEdges.ipynb` — two-stage conditional routing: an `AgentState` with two number pairs and two operators, two pass-through routers, and `add_conditional_edges` at each stage (add/subtract per pair), so `router1 → (adder1 | subtract1) → router2 → (adder2 | subtract2) → END` computes two independent results in one run.
+- `5.loopNumberGuess.ipynb` — a looping graph: a `greeting_node` initializes a `counter`, a `random_state` node appends a random number each pass, and `should_continue` routes back to the same node (`loop`) until the number matches `target_number` (or a `MAX_COUNTER` safety cap) — a graph cycle built from a conditional edge that targets its own source node.
+- `6.simpleAiAgent.ipynb` — the model inside a node: `AgentState` holds a `messages` list, the `process` node invokes `ChatGoogleGenerativeAI` on those messages and appends the reply, and an interactive `while` loop feeds user input in until `exit`.
+- `7.toolsCalls.ipynb` — tool-calling graph: `AgentState.messages` uses the `add_messages` reducer (`Annotated[Sequence[BaseMessage], add_messages]`), four `@tool` math functions (`add`/`sub`/`mul`/`div`) are bound with `model.bind_tools`, a `ToolNode` executes them, and `should_continue` loops back through the model while the last message still has `tool_calls`; run with `bot.stream(..., stream_mode="values")`.
+- `8.emailDrafter.ipynb` — a stateful email-drafting agent: `update` and `save` tools read/write a module-level `document_content` string, the system prompt embeds the current document on every turn, and `should_continue` stops once a `ToolMessage` reports the document was saved; `save` appends `.txt` and writes the file.
+- `leave_application.txt` — a sample leave-application document written by the email drafter's `save` tool.
 
 ## Key concepts learned
 
@@ -147,10 +153,16 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - **Multi-node graphs** — chaining more than two nodes with `add_edge` lets one state flow through a whole pipeline, with each node reading and enriching the same dict in order.
 - **Router node** — a lightweight pass-through node (`lambda state: state`) gives conditional edges a stable source to branch from before any real work happens.
 - **Conditional edges** — `add_conditional_edges(source, routing_fn, path_map)` decides the next node at runtime: `routing_fn` returns a key, and `path_map` translates that key into the target node name.
+- **Multiple routing stages** — chaining several routers and conditional edges lets one graph branch, rejoin and branch again (`router1 → (add1 | subtract1) → router2 → (add2 | subtract2) → END`).
+- **Graph loops** — a conditional edge can point back to an earlier node (even its own source), turning the graph into a cycle; a `counter` guard against a `MAX_COUNTER` cap keeps the loop from running forever.
+- **Message state and reducers** — typing state as `Annotated[Sequence[BaseMessage], add_messages]` tells LangGraph how to merge new messages into `state["messages"]` (append) instead of overwriting the list.
+- **ToolNode** — `langgraph.prebuilt.ToolNode(tools)` is a ready-made node that runs every tool call in the last AI message and returns the `ToolMessage` results.
+- **Tool-call routing (agent loop)** — `model.bind_tools(tools)` lets the model emit `tool_calls`; a conditional edge checks `last_message.tool_calls` to route to the tools node (then back to the model) or to `END`, which is the hand-built version of the `create_agent` loop.
+- **Streaming a graph** — `bot.stream(input, stream_mode="values")` yields the state after each step, so you can print each message/tool call as it happens instead of waiting for the final result.
 
 ## Notes
 
-- Model used: `gemini-3.6-flash` for most modules; the RAG modules use `gemini-3.5-flash` and `13.LlmAsJudge` uses `gemini-3.5-flash-lite`.
+- Model used: `gemini-3.6-flash` for most modules; `11.RAG/1.basicRag.py`, `11.RAG/2.explainableRAG.py` and `6.DocumentLoader/4.webBaseLoader.py` use `gemini-3.5-flash`; `13.LlmAsJudge` and the LangGraph agent notebooks (`6.simpleAiAgent`, `7.toolsCalls`, `8.emailDrafter`) use `gemini-3.5-flash-lite`.
 - Embeddings use `sentence-transformers/all-MiniLM-L6-v2` (via `langchain_huggingface`).
 - `resources/` also holds a second report PDF (`audit-report-xorg.pdf`) alongside `audit-report.pdf`.
 - Sample inputs for the loaders live in `resources/` (a `.txt`, two `.pdf`s and a `.csv`).

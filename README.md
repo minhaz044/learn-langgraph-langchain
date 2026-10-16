@@ -113,6 +113,7 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - `6.simpleAiAgent.ipynb` — the model inside a node: `AgentState` holds a `messages` list, the `process` node invokes `ChatGoogleGenerativeAI` on those messages and appends the reply, and an interactive `while` loop feeds user input in until `exit`.
 - `7.toolsCalls.ipynb` — tool-calling graph: `AgentState.messages` uses the `add_messages` reducer (`Annotated[Sequence[BaseMessage], add_messages]`), four `@tool` math functions (`add`/`sub`/`mul`/`div`) are bound with `model.bind_tools`, a `ToolNode` executes them, and `should_continue` loops back through the model while the last message still has `tool_calls`; run with `bot.stream(..., stream_mode="values")`.
 - `8.emailDrafter.ipynb` — a stateful email-drafting agent: `update` and `save` tools read/write a module-level `document_content` string, the system prompt embeds the current document on every turn, and `should_continue` stops once a `ToolMessage` reports the document was saved; `save` appends `.txt` and writes the file.
+- `9.ragAgent.ipynb` — agentic RAG: loads `resources/bdelection-comprehensivereportenglishbyahmadrafi.pdf` with `PyPDFLoader`, splits it (`chunk_size=1000`, `chunk_overlap=200`), embeds it with `GoogleGenerativeAIEmbeddings` (`gemini-embedding-2`) into a `Chroma` collection (`bd_election`), and wraps the store's retriever (`search_type="similarity"`, `k=3`) in a `@tool`. A hand-built agent loop (`call_llm` → `take_action` → back to `call_llm`, with `should_continue` checking whether the last message has `tool_calls`) answers questions about the report and cites its sources; interactive loop until `exit`.
 - `leave_application.txt` — a sample leave-application document written by the email drafter's `save` tool.
 
 ## Key concepts learned
@@ -159,13 +160,16 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - **ToolNode** — `langgraph.prebuilt.ToolNode(tools)` is a ready-made node that runs every tool call in the last AI message and returns the `ToolMessage` results.
 - **Tool-call routing (agent loop)** — `model.bind_tools(tools)` lets the model emit `tool_calls`; a conditional edge checks `last_message.tool_calls` to route to the tools node (then back to the model) or to `END`, which is the hand-built version of the `create_agent` loop.
 - **Streaming a graph** — `bot.stream(input, stream_mode="values")` yields the state after each step, so you can print each message/tool call as it happens instead of waiting for the final result.
+- **Retriever as a tool** — wrapping `retriever.invoke(query)` in a `@tool` that formats the returned chunks is the bridge between a RAG pipeline and an agent loop, letting the model decide when to search.
+- **Agentic RAG** — instead of always retrieving, the model chooses when to call the retriever tool (and can call it more than once) before answering, so retrieval becomes part of the agent's reasoning rather than a fixed pipeline step.
+- **Google embeddings** — `GoogleGenerativeAIEmbeddings` (`gemini-embedding-2`) is an API-based alternative to the local Hugging Face embeddings, requiring no model download.
 
 ## Notes
 
-- Model used: `gemini-3.6-flash` for most modules; `11.RAG/1.basicRag.py`, `11.RAG/2.explainableRAG.py` and `6.DocumentLoader/4.webBaseLoader.py` use `gemini-3.5-flash`; `13.LlmAsJudge` and the LangGraph agent notebooks (`6.simpleAiAgent`, `7.toolsCalls`, `8.emailDrafter`) use `gemini-3.5-flash-lite`.
-- Embeddings use `sentence-transformers/all-MiniLM-L6-v2` (via `langchain_huggingface`).
-- `resources/` also holds a second report PDF (`audit-report-xorg.pdf`) alongside `audit-report.pdf`.
-- Sample inputs for the loaders live in `resources/` (a `.txt`, two `.pdf`s and a `.csv`).
+- Model used: `gemini-3.6-flash` for most modules; `11.RAG/1.basicRag.py`, `11.RAG/2.explainableRAG.py` and `6.DocumentLoader/4.webBaseLoader.py` use `gemini-3.5-flash`; `13.LlmAsJudge` and the LangGraph agent notebooks (`6.simpleAiAgent`, `7.toolsCalls`, `8.emailDrafter`, `9.ragAgent`) use `gemini-3.5-flash-lite`.
+- Embeddings use `sentence-transformers/all-MiniLM-L6-v2` (via `langchain_huggingface`), except `14.LangGraph/9.ragAgent.ipynb`, which uses `gemini-embedding-2` via `GoogleGenerativeAIEmbeddings`.
+- `resources/` also holds a second report PDF (`audit-report-xorg.pdf`) alongside `audit-report.pdf`, plus `bdelection-comprehensivereportenglishbyahmadrafi.pdf` — the input for the agentic RAG notebook.
+- Sample inputs for the loaders live in `resources/` (a `.txt`, three `.pdf`s and a `.csv`).
 - `resources/multidocsample/` holds the multi-document RAG inputs (`audit-report.pdf`, `Customer Performance Report.pdf`, `countries of the world.csv`).
 - The Streamlit RAG app needs `streamlit` (in `pyproject.toml`) and stores chat history in `chat_memory1.db` (committed at `11.RAG/chat_memory1.db`).
 - Python `>=3.13`, managed with `uv`.

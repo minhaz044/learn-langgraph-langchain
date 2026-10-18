@@ -33,6 +33,7 @@ python 1.BasicLLM/1.geminillm.py
 | `12.Agents/` | Building a tool-calling agent with `create_agent` |
 | `13.LlmAsJudge/` | Using an LLM as a judge to evaluate another model's answers |
 | `14.LangGraph/` | State graphs: multi-node flows, conditional routing, loops and tool-calling agents |
+| `15.Project/` | A browser-use agent: driving a real browser with Playwright tools inside a LangGraph loop |
 
 ### 1.BasicLLM
 - `1.geminillm.py` — load `.env`, create a `ChatGoogleGenerativeAI` model and invoke it.
@@ -116,6 +117,9 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - `9.ragAgent.ipynb` — agentic RAG: loads `resources/bdelection-comprehensivereportenglishbyahmadrafi.pdf` with `PyPDFLoader`, splits it (`chunk_size=1000`, `chunk_overlap=200`), embeds it with `GoogleGenerativeAIEmbeddings` (`gemini-embedding-2`) into a `Chroma` collection (`bd_election`), and wraps the store's retriever (`search_type="similarity"`, `k=3`) in a `@tool`. A hand-built agent loop (`call_llm` → `take_action` → back to `call_llm`, with `should_continue` checking whether the last message has `tool_calls`) answers questions about the report and cites its sources; interactive loop until `exit`.
 - `leave_application.txt` — a sample leave-application document written by the email drafter's `save` tool.
 
+### 15.Project
+- `claw.ipynb` — an autonomous browser agent: a `BrowserManager` lazily launches one async Playwright browser (Firefox, non-headless) and reuses the same page for every call; async `@tool` functions (`browser_open_url`, `browser_inspect_page`, `browser_click_element`, `browser_type_into_element`, `browser_press_btn`) expose navigation, DOM inspection (visible text + a filtered list of interactive elements), clicking, typing and key presses. The model (`gemini-3.5-flash-lite`) is bound with `bind_tools`, a `ToolNode` runs the calls, and `route_after_agent` loops back to the agent while the last `AIMessage` still has `tool_calls` (an `AgentState` with the `add_messages` reducer). A detailed system prompt enforces an Understand → Plan → Observe → Act → Verify cycle and ends with the phrase "The assigned task completed". Interactive async loop (`await bot.ainvoke(..., config={"recursion_limit": 50})`) until `exit`, closing the browser on the way out.
+
 ## Key concepts learned
 
 - **Prompt templates** — static vs dynamic, `PromptTemplate` vs `ChatPromptTemplate`.
@@ -163,10 +167,14 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - **Retriever as a tool** — wrapping `retriever.invoke(query)` in a `@tool` that formats the returned chunks is the bridge between a RAG pipeline and an agent loop, letting the model decide when to search.
 - **Agentic RAG** — instead of always retrieving, the model chooses when to call the retriever tool (and can call it more than once) before answering, so retrieval becomes part of the agent's reasoning rather than a fixed pipeline step.
 - **Google embeddings** — `GoogleGenerativeAIEmbeddings` (`gemini-embedding-2`) is an API-based alternative to the local Hugging Face embeddings, requiring no model download.
+- **Browser automation tools** — wrapping Playwright actions (`page.goto`, `locator.click`/`fill`/`press`, `inner_text`) in async `@tool` functions lets the LLM drive a real browser through DOM selectors instead of screen coordinates.
+- **Reusing a browser session** — a `BrowserManager` that lazily launches one browser/page and keeps handing back the same instance makes the agent stateful across tool calls, instead of opening (and losing) a browser on every call.
+- **Page inspection for grounded selectors** — returning a page's visible text plus a filtered list of interactive elements (buttons, inputs, links) gives the model real selectors and state to act on rather than guessed ones.
+- **Async tools and graph invocation** — async `@tool`s require the graph to run with `await bot.ainvoke(...)`, and `config={"recursion_limit": 50}` bounds the observe → act loop so a stuck agent can't spin forever.
 
 ## Notes
 
-- Model used: `gemini-3.6-flash` for most modules; `11.RAG/1.basicRag.py`, `11.RAG/2.explainableRAG.py` and `6.DocumentLoader/4.webBaseLoader.py` use `gemini-3.5-flash`; `13.LlmAsJudge` and the LangGraph agent notebooks (`6.simpleAiAgent`, `7.toolsCalls`, `8.emailDrafter`, `9.ragAgent`) use `gemini-3.5-flash-lite`.
+- Model used: `gemini-3.6-flash` for most modules; `11.RAG/1.basicRag.py`, `11.RAG/2.explainableRAG.py` and `6.DocumentLoader/4.webBaseLoader.py` use `gemini-3.5-flash`; `13.LlmAsJudge` and the LangGraph agent notebooks (`6.simpleAiAgent`, `7.toolsCalls`, `8.emailDrafter`, `9.ragAgent`) plus `15.Project/claw.ipynb` use `gemini-3.5-flash-lite`.
 - Embeddings use `sentence-transformers/all-MiniLM-L6-v2` (via `langchain_huggingface`), except `14.LangGraph/9.ragAgent.ipynb`, which uses `gemini-embedding-2` via `GoogleGenerativeAIEmbeddings`.
 - `resources/` also holds a second report PDF (`audit-report-xorg.pdf`) alongside `audit-report.pdf`, plus `bdelection-comprehensivereportenglishbyahmadrafi.pdf` — the input for the agentic RAG notebook.
 - Sample inputs for the loaders live in `resources/` (a `.txt`, three `.pdf`s and a `.csv`).

@@ -24,4 +24,6 @@ dependencies = [
     "ipykernel",
     "pyautogui",
     "playwright",
+    "sqlalchemy",
+    "langchain-classic>=1.0.8",
 ]

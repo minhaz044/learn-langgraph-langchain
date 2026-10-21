@@ -33,7 +33,7 @@ python 1.BasicLLM/1.geminillm.py
 | `12.Agents/` | Building a tool-calling agent with `create_agent` |
 | `13.LlmAsJudge/` | Using an LLM as a judge to evaluate another model's answers |
 | `14.LangGraph/` | State graphs: multi-node flows, conditional routing, loops and tool-calling agents |
-| `15.Project/` | A browser-use agent: driving a real browser with Playwright tools inside a LangGraph loop |
+| `15.Project/` | Hands-on agents: a browser-use agent (Playwright) and a SQL agent over a generated `bank.db` |
 
 ### 1.BasicLLM
 - `1.geminillm.py` — load `.env`, create a `ChatGoogleGenerativeAI` model and invoke it.
@@ -118,7 +118,11 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - `leave_application.txt` — a sample leave-application document written by the email drafter's `save` tool.
 
 ### 15.Project
+Two small agents that put the earlier pieces (tools + a loop) to work on a real task:
 - `claw.ipynb` — an autonomous browser agent: a `BrowserManager` lazily launches one async Playwright browser (Firefox, non-headless) and reuses the same page for every call; async `@tool` functions (`browser_open_url`, `browser_inspect_page`, `browser_click_element`, `browser_type_into_element`, `browser_press_btn`) expose navigation, DOM inspection (visible text + a filtered list of interactive elements), clicking, typing and key presses. The model (`gemini-3.5-flash-lite`) is bound with `bind_tools`, a `ToolNode` runs the calls, and `route_after_agent` loops back to the agent while the last `AIMessage` still has `tool_calls` (an `AgentState` with the `add_messages` reducer). A detailed system prompt enforces an Understand → Plan → Observe → Act → Verify cycle and ends with the phrase "The assigned task completed". Interactive async loop (`await bot.ainvoke(..., config={"recursion_limit": 50})`) until `exit`, closing the browser on the way out.
+- `sqlAgent/database.py` — generates the fixture database with `sqlite3`: drops and recreates eight tables (`customers`, `addresses`, `branches`, `accounts`, `transactions`, `loans`, `employees`, `account_managers`) and fills them with randomized banking data (50 customers, 100 accounts, ~3000 transactions, 30 loans, 10 employees), then commits to `bank.db` and closes.
+- `sqlAgent/sqlAgent.py` — a natural-language SQL agent: wraps the SQLite file with `SQLDatabase.from_uri("sqlite:///bank.db")` and hands it to `create_sql_agent(agent_type="zero-shot-react-description")` with `gemini-3.5-flash-lite`, so a plain question (e.g. "how many personal loans have been assigned") is turned into SQL, executed, and answered — `verbose=True` prints the thought/action/observation steps.
+- `bank.db` / `sqlAgent/bank.db` — the generated SQLite databases (regenerated each time `database.py` runs).
 
 ## Key concepts learned
 
@@ -171,11 +175,14 @@ Each script embeds a list of strings, stores the vectors, then runs `similarity_
 - **Reusing a browser session** — a `BrowserManager` that lazily launches one browser/page and keeps handing back the same instance makes the agent stateful across tool calls, instead of opening (and losing) a browser on every call.
 - **Page inspection for grounded selectors** — returning a page's visible text plus a filtered list of interactive elements (buttons, inputs, links) gives the model real selectors and state to act on rather than guessed ones.
 - **Async tools and graph invocation** — async `@tool`s require the graph to run with `await bot.ainvoke(...)`, and `config={"recursion_limit": 50}` bounds the observe → act loop so a stuck agent can't spin forever.
+- **SQLDatabase** — `SQLDatabase.from_uri("sqlite:///bank.db")` wires LangChain to any SQLAlchemy-supported database and exposes its tables, schema and query runner as tools for the model.
+- **SQL agent** — `create_sql_agent(llm, db, agent_type="zero-shot-react-description")` packages those tools into a ReAct loop: the model lists tables, reads the schema, writes SQL, runs it, and turns the rows back into a natural-language answer (`verbose=True` shows each thought/action/observation).
 
 ## Notes
 
-- Model used: `gemini-3.6-flash` for most modules; `11.RAG/1.basicRag.py`, `11.RAG/2.explainableRAG.py` and `6.DocumentLoader/4.webBaseLoader.py` use `gemini-3.5-flash`; `13.LlmAsJudge` and the LangGraph agent notebooks (`6.simpleAiAgent`, `7.toolsCalls`, `8.emailDrafter`, `9.ragAgent`) plus `15.Project/claw.ipynb` use `gemini-3.5-flash-lite`.
+- Model used: `gemini-3.6-flash` for most modules; `11.RAG/1.basicRag.py`, `11.RAG/2.explainableRAG.py` and `6.DocumentLoader/4.webBaseLoader.py` use `gemini-3.5-flash`; `13.LlmAsJudge` and the LangGraph agent notebooks (`6.simpleAiAgent`, `7.toolsCalls`, `8.emailDrafter`, `9.ragAgent`) plus `15.Project/claw.ipynb` and `15.Project/sqlAgent/sqlAgent.py` use `gemini-3.5-flash-lite`.
 - Embeddings use `sentence-transformers/all-MiniLM-L6-v2` (via `langchain_huggingface`), except `14.LangGraph/9.ragAgent.ipynb`, which uses `gemini-embedding-2` via `GoogleGenerativeAIEmbeddings`.
+- The SQL agent needs `sqlalchemy` and `langchain-classic` (both in `pyproject.toml`); its `sqlite:///bank.db` URI is relative, so run `15.Project/sqlAgent/sqlAgent.py` from that folder and generate the DB first with `database.py`.
 - `resources/` also holds a second report PDF (`audit-report-xorg.pdf`) alongside `audit-report.pdf`, plus `bdelection-comprehensivereportenglishbyahmadrafi.pdf` — the input for the agentic RAG notebook.
 - Sample inputs for the loaders live in `resources/` (a `.txt`, three `.pdf`s and a `.csv`).
 - `resources/multidocsample/` holds the multi-document RAG inputs (`audit-report.pdf`, `Customer Performance Report.pdf`, `countries of the world.csv`).

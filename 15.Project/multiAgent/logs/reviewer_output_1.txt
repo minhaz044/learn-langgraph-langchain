@@ -1,0 +1,2 @@
+Decision: revise 
+Reason : The draft provides a strong theoretical overview of the pros, cons, and the Strangler Fig migration strategy, but it lacks specific **concrete examples** (e.g., walking through a specific e-commerce domain entity like "Checkout" or "Inventory" end-to-end) and deeper **implementation details** (such as code/schema separation or explicit Saga pattern handling for distributed transactions) to make the guidance fully actionable.

@@ -34,6 +34,7 @@ python 1.BasicLLM/1.geminillm.py
 | `13.LlmAsJudge/` | Using an LLM as a judge to evaluate another model's answers |
 | `14.LangGraph/` | State graphs: multi-node flows, conditional routing, loops and tool-calling agents |
 | `15.Project/` | Hands-on agents: a browser-use agent (Playwright), a SQL agent over a generated `bank.db`, and a planner/worker/reviewer multi-agent system |
+| `16.evaluation/` | Testing and scoring LLM apps with DeepEval: test cases, `GEval`, conversational and reference-free metrics, and a meeting-summarizer eval harness |
 
 ### 1.BasicLLM
 - `1.geminillm.py` — load `.env`, create a `ChatGoogleGenerativeAI` model and invoke it.
@@ -127,6 +128,15 @@ Three small agents that put the earlier pieces (tools + a loop) to work on a rea
 - `multiAgent/workflow.png` — the compiled graph rendered via `app.get_graph().draw_mermaid_png()`.
 - `multiAgent/logs/` — the run's trace: `execution.log` plus `planner_output.txt`, `worker_output_N.txt` and `reviewer_output_N.txt` for each revise round.
 
+### 16.evaluation
+LLM-app testing with **DeepEval** (`deepeval`), using `deepeval.models.GeminiModel` (`gemini-3.5-flash-lite`) as the judge:
+- `LLM.py` — shared judge model: loads `.env` and exposes `GeminiModel(model="gemini-3.5-flash-lite")` as `llm`.
+- `llmTestCase.py` — `LLMTestCase` (input/expected/actual) scored by two `GEval` "Correctness" metrics — one demanding an exact match, one accepting different wording with the same meaning — and asserted with `assert_test`.
+- `conversationalTestCase.py` — `ConversationalTestCase` built from `Turn` objects (user/assistant), graded by `ConversationalGEval` on professionalism (`evaluation_params=[MultiTurnParams.CONTENT]`) to contrast a rude conversation with a polite one.
+- `answerRelevancyMatrics.py` — the simplest end-to-end check: one `LLMTestCase` run through `AnswerRelevancyMetric(threshold=0.5, include_reason=True)` with `evaluate(...)`.
+- `meetingSummarizer/meetingSummarizer.py` — a `MeetingSummarizer` class wrapping `ChatGoogleGenerativeAI` with two prompts: one turning a transcript into a 3–5 bullet summary, and one extracting action items as JSON (`task`, `responsible_person`, `deadline`, `priority`, `status`). Run directly to summarize `resources/meeting_transcript.txt`.
+- `meetingSummarizer/meetingSummarizerTest.py` — the evaluation harness: loads every `*.txt` in `resources/transcripts/`, wraps each in a `Golden`, runs the summarizer on it, builds `LLMTestCase`s for the summary and the action items, then scores them with two `GEval` metrics — *Summary Concision* and *Action Item Accuracy* — before printing the result.
+
 ## Key concepts learned
 
 - **Prompt templates** — static vs dynamic, `PromptTemplate` vs `ChatPromptTemplate`.
@@ -184,15 +194,25 @@ Three small agents that put the earlier pieces (tools + a loop) to work on a rea
 - **Planner → worker → reviewer loop** — the planner decomposes the task, the worker drafts, and the reviewer critiques against explicit criteria; a conditional edge sends the draft back to the worker until the reviewer approves (or a revision cap like `revision_count >= 2` is hit) — an LLM-as-judge wired into the graph as a quality gate.
 - **Self-revise (reflexion) loop** — feeding the reviewer's `reason` into the next worker prompt as feedback makes the worker explicitly fix the flagged issues, turning review into improvement instead of just a score.
 - **Traceability** — writing each agent's output to `logs/*.txt` and a run log (`execution.log`), plus rendering the graph with `draw_mermaid_png()`, makes a hidden multi-step run inspectable after the fact.
+- **LLM evaluation with DeepEval** — `deepeval` treats an LLM app as a system under test: build `LLMTestCase`s (input/expected/actual) and score them with metrics, either in a pytest-style `assert_test` or a batch `evaluate(...)`.
+- **GEval (custom criteria)** — `GEval(name=..., criteria=..., evaluation_params=[...])` uses an LLM to grade output against free-text criteria, so you can test qualities (correctness, concision) that have no single exact-match answer.
+- **Meaning vs exact match** — two almost identical GEval criteria show the range: a strict one scores 0 unless the output matches exactly, while a softer one accepts different wording with the same meaning.
+- **Metric thresholds** — every metric carries a `threshold` (e.g. 0.5); a test passes when the score clears it, which is how fuzzy LLM output becomes a pass/fail.
+- **Conversational test cases** — `ConversationalTestCase` + `Turn(role, content)` evaluates whole multi-turn dialogues, and `ConversationalGEval` with `MultiTurnParams.CONTENT` grades them (e.g. professionalism) instead of a single answer.
+- **Reference-free metrics** — `AnswerRelevancyMetric` grades an answer against just the input (no expected output needed), which suits tasks where there is no one right answer.
+- **DeepEval judge models** — `deepeval.models.GeminiModel` (or any supported LLM) is injected as the metric's `model=`, so grading runs through the same Gemini key as the app.
+- **Golden datasets** — `deepeval.dataset.Golden` holds the bare inputs, and the harness expands each into `LLMTestCase`s at run time — the shape of a small custom eval set.
 
 ## Notes
 
-- Model used: `gemini-3.6-flash` for most modules; `11.RAG/1.basicRag.py`, `11.RAG/2.explainableRAG.py` and `6.DocumentLoader/4.webBaseLoader.py` use `gemini-3.5-flash`; `13.LlmAsJudge` and the LangGraph agent notebooks (`6.simpleAiAgent`, `7.toolsCalls`, `8.emailDrafter`, `9.ragAgent`) plus `15.Project/claw.ipynb`, `15.Project/sqlAgent/sqlAgent.py` and `15.Project/multiAgent/multiAgent.py` use `gemini-3.5-flash-lite`.
+- Model used: `gemini-3.6-flash` for most modules; `11.RAG/1.basicRag.py`, `11.RAG/2.explainableRAG.py` and `6.DocumentLoader/4.webBaseLoader.py` use `gemini-3.5-flash`; `13.LlmAsJudge`, the `16.evaluation` metrics/harness, and the LangGraph agent notebooks (`6.simpleAiAgent`, `7.toolsCalls`, `8.emailDrafter`, `9.ragAgent`) plus `15.Project/claw.ipynb`, `15.Project/sqlAgent/sqlAgent.py` and `15.Project/multiAgent/multiAgent.py` use `gemini-3.5-flash-lite`.
 - Embeddings use `sentence-transformers/all-MiniLM-L6-v2` (via `langchain_huggingface`), except `14.LangGraph/9.ragAgent.ipynb`, which uses `gemini-embedding-2` via `GoogleGenerativeAIEmbeddings`.
 - The SQL agent needs `sqlalchemy` and `langchain-classic` (both in `pyproject.toml`); its `sqlite:///bank.db` URI is relative, so run `15.Project/sqlAgent/sqlAgent.py` from that folder and generate the DB first with `database.py`.
+- `16.evaluation` needs `deepeval` (in `pyproject.toml`); `llmTestCase.py` and `conversationalTestCase.py` are pytest-style (`assert_test` / `test_*` functions) — run them with `deepeval test run` (or `pytest`) from `16.evaluation/`, while `answerRelevancyMatrics.py` and `meetingSummarizer/meetingSummarizerTest.py` are plain scripts you run directly.
 - `resources/` also holds a second report PDF (`audit-report-xorg.pdf`) alongside `audit-report.pdf`, plus `bdelection-comprehensivereportenglishbyahmadrafi.pdf` — the input for the agentic RAG notebook.
 - Sample inputs for the loaders live in `resources/` (a `.txt`, three `.pdf`s and a `.csv`).
 - `resources/multidocsample/` holds the multi-document RAG inputs (`audit-report.pdf`, `Customer Performance Report.pdf`, `countries of the world.csv`).
+- `resources/meeting_transcript.txt` is the sample transcript summarized by `16.evaluation/meetingSummarizer/meetingSummarizer.py`, and `resources/transcripts/` holds the meeting transcripts (`meeting_transcript1.txt`, `meeting_transcript4.txt`, …) the summarizer eval runs over.
 - The Streamlit RAG app needs `streamlit` (in `pyproject.toml`) and stores chat history in `chat_memory1.db` (committed at `11.RAG/chat_memory1.db`).
 - Python `>=3.13`, managed with `uv`.
 - `.env` is git-ignored — never commit API keys.

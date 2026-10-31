@@ -26,4 +26,5 @@ dependencies = [
     "playwright",
     "sqlalchemy",
     "langchain-classic>=1.0.8",
+    "deepeval>=4.3.2",
 ]

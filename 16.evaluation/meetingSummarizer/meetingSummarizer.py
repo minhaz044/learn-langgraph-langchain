@@ -9,9 +9,8 @@ load_dotenv()
 
 class MeetingSummarizer:
     def __init__(self, model: str = "gemini-3.5-flash-lite"):
-        self.model = model
-        self.llm = ChatGoogleGenerativeAI(model=model)
-        self.summarizer_system_template = PromptTemplate.from_template("""
+        self.__llm = ChatGoogleGenerativeAI(model=model)
+        self.__summarizer_system_template = PromptTemplate.from_template("""
         You are an expert conversation summarizer. Analyze the provided conversation and generate a short, precise summary.
         
             **Rules:**
@@ -28,7 +27,7 @@ class MeetingSummarizer:
             
                 {conversation}
         """)
-        self.action_item_system_prompt = PromptTemplate.from_template("""
+        self.__action_item_system_prompt = PromptTemplate.from_template("""
         You are an expert Action Item Extractor. Analyze the provided conversation and extract all explicitly mentioned or clearly agreed tasks, commitments, and follow-up activities.
         
         **Extract these fields for each action item:**
@@ -68,18 +67,18 @@ class MeetingSummarizer:
         """)
 
     def summarize(self, transcript: str):
-        summary = self.get_summary(transcript)
-        action_item = self.get_action_item(transcript)
+        summary = self.__get_summary(transcript)
+        action_item = self.__get_action_item(transcript)
         return summary, action_item
 
-    def get_summary(self, transcript: str):
-        message = self.summarizer_system_template.format(conversation=transcript)
-        response = self.llm.invoke(message)
+    def __get_summary(self, transcript: str):
+        message = self.__summarizer_system_template.format(conversation=transcript)
+        response = self.__llm.invoke(message)
         return response.text
 
-    def get_action_item(self, transcript: str):
-        message = self.action_item_system_prompt.format(conversation=transcript)
-        response = self.llm.invoke(message)
+    def __get_action_item(self, transcript: str):
+        message = self.__action_item_system_prompt.format(conversation=transcript)
+        response = self.__llm.invoke(message)
         return response.text
 
 

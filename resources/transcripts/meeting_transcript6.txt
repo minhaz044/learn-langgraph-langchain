@@ -1,0 +1,110 @@
+[11:20:07 AM]
+Aisha:
+Hey Victor, thanks for helping with this debrief. We've now interviewed six
+candidates for the senior backend role and we still haven't made a call. I want to
+get to a decision today, not another week of pondering.
+
+[11:20:26 AM]
+Victor:
+Agreed, dragging it out hurts us — good candidates get snapped up fast. So let's
+go through them. Who stood out to you?
+
+[11:20:41 AM]
+Aisha:
+Honestly, two people. Leila and Sam. Leila had the strongest system design
+discussion — she walked through trade-offs like she'd actually owned production
+systems. Sam was technically solid too but a bit surface-level when we pushed.
+
+[11:21:00 AM]
+Victor:
+Interesting, I had the opposite feeling on Sam. His coding round was clean, but
+he struggled to explain *why* he made the choices he did. That's a red flag for a
+senior role — we need people who reason, not just type.
+
+[11:21:20 AM]
+Aisha:
+Yeah, that matches. So Leila's ahead on the technical bar. But I had a concern on
+the collaboration side. When I asked about disagreeing with a teammate, her answer
+was a bit... I don't know, focused on winning the argument rather than finding
+common ground.
+
+[11:21:42 AM]
+Victor:
+That's worth probing. On a senior team, the ability to disagree well is almost as
+important as the code. Did anyone else flag that?
+
+[11:21:57 AM]
+Aisha:
+The reference check isn't done yet. That's the gap. If the reference confirms she's
+great to work with, I'm fully on board. If it's lukewarm, I'd want a follow-up
+conversation.
+
+[11:22:15 AM]
+Victor:
+Then let's not decide blind. Get the reference done before we commit. Who's doing
+it?
+
+[11:22:28 AM]
+Aisha:
+I'll take it — I have a contact who worked with her directly, so it'll be a real
+conversation, not a formality.
+
+[11:22:43 AM]
+Victor:
+Good. Now, what about the other four? Is there anyone worth a second look or do we
+close them out?
+
+[11:22:58 AM]
+Victor:
+Two of them were clearly below the bar, no question. The other two were borderline
+— decent but not senior-level. I'd say we send a polite rejection and leave the
+door open for a mid-level role if one opens up.
+
+[11:23:16 AM]
+Aisha:
+That's fair and kind. Let's do that. So the plan is — pursue Leila, contingent on
+the reference, and reject the rest but keep the borderline two warm.
+
+[11:23:34 AM]
+Victor:
+What if Leila says no, or the reference is bad? Do we have a backup, or do we go
+back to sourcing?
+
+[11:23:49 AM]
+Aisha:
+I think we go back to sourcing. I'd rather wait and get the right person than hire
+Sam into a senior role where he'd struggle. That's how you end up managing someone
+out in six months.
+
+[11:24:08 AM]
+Victor:
+Yeah, I've seen that movie. A mis-hire at senior level costs us way more than
+leaving the seat empty for a few more weeks.
+
+[11:24:23 AM]
+Aisha:
+Exactly. So — I'll do the reference check today and get back to you with the
+verdict. You'll handle the rejection emails and keep the two borderline candidates
+warm.
+
+[11:24:41 AM]
+Victor:
+I'll send the rejections by end of day and note the two to revisit. Should I also
+ping the recruiter to restart sourcing in parallel, just in case?
+
+[11:24:58 AM]
+Aisha:
+Yes, quietly, in case Leila falls through. No harm in having a pipeline ready.
+
+[11:25:13 AM]
+Victor:
+Makes sense. I'll ask them to start looking without telling candidates we're at
+the offer stage yet.
+
+[11:25:28 AM]
+Aisha:
+Perfect. Let's talk tomorrow once the reference is done.
+
+[11:25:36 AM]
+Victor:
+Sounds good. Fingers crossed she's as good as she seems on paper.

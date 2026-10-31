@@ -1,0 +1,115 @@
+[9:15:04 AM]
+Sofia:
+Ken, thanks for jumping on so early. We had an alert overnight — someone tried to
+get into a few admin accounts and we need to figure out whether anything actually
+got compromised.
+
+[9:15:22 AM]
+Ken:
+I saw the alert in the SIEM around 2 AM. Multiple failed logins across three admin
+accounts from an unusual IP range. I already flagged the addresses.
+
+[9:15:40 AM]
+Sofia:
+Good. First priority — were any of those logins successful? That changes everything.
+
+[9:15:55 AM]
+Ken:
+As far as I can tell, no. All failures. But I haven't finished reviewing the full
+window yet, and the attacker may have moved to a different vector once the brute
+force didn't work.
+
+[9:16:14 AM]
+Sofia:
+Let's not assume. If there's a chance they got in and we tell everyone it's fine,
+that's the worst possible look. What do we need to be certain?
+
+[9:16:31 AM]
+Ken:
+We should check the authentication logs end to end, look for any anomalous session
+tokens issued in that window, and verify none of the admin accounts had unusual
+activity after the attempts.
+
+[9:16:49 AM]
+Sofia:
+Okay, do that. And my instinct is to force a password reset on those three accounts
+right now, even if we think they weren't breached. Better safe.
+
+[9:17:05 AM]
+Ken:
+I'd agree, but let's coordinate with IT so we don't lock out an admin mid-incident.
+I can send them the list.
+
+[9:17:20 AM]
+Sofia:
+Do it. What's our exposure story — do we need to notify anyone yet?
+
+[9:17:35 AM]
+Ken:
+I wouldn't notify externally yet. If we confirm no data was accessed, there's
+nothing to disclose. But if we find any sign of access, we loop in legal
+immediately, because the timelines for breach notification are strict.
+
+[9:17:53 AM]
+Sofia:
+Agreed. Let's have a clear trigger — the moment we find any successful unauthorized
+access, legal gets a call. Not before, but never after.
+
+[9:18:10 AM]
+Ken:
+Understood. Now the root cause side — those admin accounts didn't have MFA enabled.
+That's the real problem. Brute force is only scary because MFA isn't there.
+
+[9:18:28 AM]
+Sofia:
+That's a glaring gap. How many accounts across the org are missing MFA?
+
+[9:18:42 AM]
+Ken:
+I haven't audited it fully, but I'd guess at least a dozen, maybe more. Admin
+accounts especially — people disable it for convenience, which is exactly wrong.
+
+[9:19:00 AM]
+Sofia:
+Let's fix that properly. I want an audit of every privileged account, and MFA
+made mandatory for all of them. No exceptions this time.
+
+[9:19:17 AM]
+Ken:
+I can run the audit today. Enforcing it is more of a policy change, so that'll
+need a sign-off from the security lead.
+
+[9:19:32 AM]
+Sofia:
+I'll get the sign-off. And while we're at it, let's add rate limiting on the login
+endpoint so brute force attempts get throttled automatically instead of just
+logged.
+
+[9:19:50 AM]
+Ken:
+Good call. Right now we just log them. Throttling would have slowed this attack
+to a crawl.
+
+[9:20:05 AM]
+Sofia:
+Okay, so where are we? You're going to finish reviewing the logs and confirm
+whether anything got through, coordinate the password resets with IT, and run the
+MFA audit.
+
+[9:20:23 AM]
+Ken:
+And you'll get the policy sign-off for mandatory MFA and loop in legal if we find
+actual access.
+
+[9:20:38 AM]
+Sofia:
+Correct. Let's reconvene at noon for a status update, even if it's just "still
+clean."
+
+[9:20:52 AM]
+Ken:
+Sounds good. Nothing's confirmed until the logs say so.
+
+[9:20:59 AM]
+Sofia:
+Exactly. Assume nothing, verify everything.

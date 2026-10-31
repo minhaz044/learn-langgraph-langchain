@@ -1,0 +1,127 @@
+[3:10:04 PM]
+Elena:
+Raj, thanks for meeting. I want to dig into our new customer onboarding because
+we're losing a lot of customers in the first two weeks and that's the most expensive
+place to lose them.
+
+[3:10:22 PM]
+Raj:
+Yeah, the data backs that up. About 25 percent of new signups never complete the
+setup steps. And of those who drop off, most do it on day one.
+
+[3:10:40 PM]
+Elena:
+Day one is the killer. What happens on day one in our flow right now?
+
+[3:10:55 PM]
+Raj:
+A lot. We ask them to create an account, verify email, connect a data source, set up
+their workspace, invite teammates, and configure preferences — all before they can
+actually use the product.
+
+[3:11:15 PM]
+Elena:
+That's way too much before the first moment of value. They never get to see why the
+product is useful. We're asking for effort before we've given them anything.
+
+[3:11:33 PM]
+Raj:
+Exactly. The best onboarding I've seen gets you to the "aha moment" in under two
+minutes, then asks for the rest gradually.
+
+[3:11:50 PM]
+Elena:
+So how do we get to value faster? What's the one thing that makes someone go "oh,
+this is great"?
+
+[3:12:06 PM]
+Raj:
+From feedback, it's seeing their data visualized for the first time. That's the
+moment. But right now they have to connect a data source and configure a lot before
+that screen even loads.
+
+[3:12:25 PM]
+Elena:
+Can we show them a sample or demo workspace first, so they see the value before
+connecting anything? Then connecting their own data feels like a natural next step.
+
+[3:12:43 PM]
+Raj:
+Yeah, a demo workspace with fake but realistic data would work. They'd land, see it
+working, and then we say "now connect your data to make this yours." That flips the
+motivation.
+
+[3:13:03 PM]
+Elena:
+I love that. Let's do it. What about the teammate invites? Can we defer those?
+
+[3:13:18 PM]
+Raj:
+Definitely. Inviting teammates on day one is friction. It's a team product but a
+single person should be able to get value alone first. We can nudge them to invite
+after they've used it a bit.
+
+[3:13:38 PM]
+Elena:
+So we move invites and preferences to later, and get them straight to the demo.
+What about email verification — that's a common drop-off too.
+
+[3:13:55 PM]
+Raj:
+It is. It's a security step so we can't remove it, but we could let them into the
+product before verifying, and just gate certain actions until they verify. Then the
+verification isn't blocking the first impression.
+
+[3:14:16 PM]
+Elena:
+That's a good compromise. Let them feel the product, verify in the background, and
+only block on verification when they do something that needs it.
+
+[3:14:33 PM]
+Raj:
+Right. And we should send a nudge email if they haven't verified within, say, an
+hour. Gentle, not naggy.
+
+[3:14:48 PM]
+Elena:
+Speaking of emails, let's also look at whether our day-one email is helping or just
+adding noise.
+
+[3:15:03 PM]
+Raj:
+I don't think anyone reads it, honestly. It's a wall of text. We should replace it
+with a short one that links them straight back to where they left off.
+
+[3:15:22 PM]
+Elena:
+Yes — a "you were this close" email that resumes the flow. But first things first.
+How do we test all this without rebuilding the whole flow?
+
+[3:15:40 PM]
+Raj:
+I'd start with the demo workspace change — it's the highest impact and the least
+invasive. We can measure whether the day-one drop-off drops before doing the rest.
+
+[3:15:58 PM]
+Elena:
+Agreed. One change, measure, then expand. So action items — you build the demo
+workspace with realistic data, move email verification to non-blocking, and draft a
+shorter resume-style day-one email.
+
+[3:16:22 PM]
+Raj:
+And you'll review the new email copy and help define the success metric — I'd say
+setup completion rate within 24 hours.
+
+[3:16:39 PM]
+Elena:
+That's the right metric. Let's use it. Check in next Friday with the first version
+of the demo workspace.
+
+[3:16:53 PM]
+Raj:
+Will do. If this works, day one goes from a wall of forms to a "wow" moment.
+
+[3:17:01 PM]
+Elena:
+That's the whole idea. Let's make the product sell itself before we ask for anything.

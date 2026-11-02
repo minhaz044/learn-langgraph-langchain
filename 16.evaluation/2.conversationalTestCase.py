@@ -30,4 +30,4 @@ def test_conversation_correctness():
         ]
     )
 
-    result = evaluate(test_cases=[conversational1, conversational2], metrics=[professionalism_metrics])
+    evaluate(test_cases=[conversational1, conversational2], metrics=[professionalism_metrics])

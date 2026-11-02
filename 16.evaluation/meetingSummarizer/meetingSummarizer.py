@@ -84,10 +84,10 @@ class MeetingSummarizer:
 
 loader = TextLoader("/home/minhazuddinahmed/Documents/AI/Learn-LangGraph/resources/meeting_transcript.txt",
                     encoding="utf-8")
-
-docs = loader.load()
-
-summarizer = MeetingSummarizer()
-summary, action_item = summarizer.summarize(docs[0].page_content)
-print(summary)
-print(action_item)
+#
+# docs = loader.load()
+#
+# summarizer = MeetingSummarizer()
+# summary, action_item = summarizer.summarize(docs[0].page_content)
+# print(summary)
+# print(action_item)
